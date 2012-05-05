@@ -1,4 +1,4 @@
-## Laravel Template - A Blade extension
+## Laravel Template Bundle - A Blade extension
 
 Laravel Template lets you register helpers to the Blade to integrate your project's modules with your views.
 
