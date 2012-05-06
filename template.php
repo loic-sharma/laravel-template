@@ -23,7 +23,7 @@ class Template {
 				// Grab all of the tags that match the helper's name. As there
 				// may be many registered helpers, it is optimal to verify the
 				// tag exists before running any regular expressions.
-				if(strpos($value, '{{'.$name))
+				if(strpos($value, '{{'.$name) !== false)
 				{
 					while(preg_match('/\{\{'.$name.'(.*?)\}\}/', $value, $matches, PREG_OFFSET_CAPTURE))
 					{
