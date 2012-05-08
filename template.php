@@ -30,9 +30,9 @@ class Template {
 	{
 		if(count(static::$helpers) == 0)
 		{
-			// If there are no helpers then the regular expression that is
-			// later generated will match every Blade tag. To prevent this,
-			// parsing will be stopped here.
+			// If there are no helpers the regular expression will match all
+			// Blade tags. To prevent this from happening, parsing will be
+			// forced to end here.
 			return $content;
 		}
 
