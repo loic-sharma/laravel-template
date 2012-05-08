@@ -10,47 +10,6 @@ class Template {
 	static public $helpers = array();
 
 	/**
-	 * Register the Blade extension.
-	 *
-	 * @return void
-	 */
-	public static function _init()
-	{
-		Blade::extend(function($value)
-		{
-			foreach(Template::$helpers as $name => $helper)
-			{
-				// Grab all of the tags that match the helper's name. As there
-				// may be many registered helpers, it is optimal to verify the
-				// tag exists before running any regular expressions.
-				if(strpos($value, '{{'.$name) !== false)
-				{
-					while(preg_match('/\{\{'.$name.'(.*?)\}\}/', $value, $matches, PREG_OFFSET_CAPTURE))
-					{
-						$params = trim($matches[1][0]);
-
-						if( ! empty($params))
-						{
-							// The tag's parameters need to be converted into a PHP array.
-							// Single quotes will need to be backslashed to prevent them
-							// from accidentally escaping out.
-							$params = addcslashes($params, '\'');
-							$params = preg_replace('/(.*?)="(.*?)"/', '\'$1\'=>\'$2\',', $params);
-							$params = substr($params, 0, -1);
-						}
-
-						$replace = '<?php echo \\Template::call(\''.$name.'\', array('.$params.')); ?>';
-
-						$value = str_replace($matches[0], $replace, $value);
-					}
-				}
-			}
-
-			return $value;
-		});
-	}
-
-	/**
 	 * Register a template helper.
 	 *
 	 * @param  string   $name
@@ -60,6 +19,47 @@ class Template {
 	public static function helper($name, Closure $helper)
 	{
 		static::$helpers[$name] = $helper;
+	}
+
+	/**
+	 * Parse the content for template tags.
+	 *
+	 * @return string
+	 */
+	public static function parse($content)
+	{
+		if(count(static::$helpers) == 0)
+		{
+			// If there are no helpers then the regular expression that is
+			// later generated will match every Blade tag. To prevent this
+			return $content;
+		}
+
+		$names = array();
+
+		foreach(static::$helpers as $name => $helper)
+		{
+			$names[] = preg_quote($name, '/');
+		}
+
+		$regexp = '/\{\{('.implode('|', $names).')(.*?)\}\}/u';
+
+		return preg_replace_callback($regexp, function($match)
+		{
+			list(, $name, $params) = $match;
+
+			if( ! empty($params))
+			{
+				// The tag's parameters need to be converted into a PHP array.
+				// Single quotes will need to be backslashed to prevent them
+				// from accidentally escaping out.
+				$params = addcslashes($params, '\'');
+				$params = preg_replace('/ (.*?)="(.*?)"/', '\'$1\'=>\'$2\',', $params);
+				$params = substr($params, 0, -1);
+			}
+
+			return '<?php echo \\Template::call(\''.$name.'\', array('.$params.')); ?>';
+		}, $content);
 	}
 
 	/**

@@ -4,4 +4,7 @@ Autoloader::map(array(
 	'Template' => Bundle::path('template').'template'.EXT,
 ));
 
-Template::_init();
+Blade::extend(function($content)
+{
+	return Template::parse($content);
+});
